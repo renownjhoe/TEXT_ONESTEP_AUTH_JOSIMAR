@@ -3,6 +3,35 @@ import { Fingerprint, Key, Telegram, QuestionMark } from '@mui/icons-material';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  
+  // Function to generate a random string for state parameter
+  const generateRandomString = (length = 20) => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  };
+
+  // Handle Telegram login manually without widget
+  const initiateTegramAuth = () => {
+    // Your Telegram bot's numeric ID (not username)
+    const botId = '7659055031'; // Replace with your actual bot's numeric ID
+    
+    // Generate and store state parameter to prevent CSRF
+    const state = generateRandomString();
+    localStorage.setItem('telegramAuthState', state);
+    
+    // Redirect parameters
+    const redirectUrl = encodeURIComponent(`${window.location.origin}/handle-telegram-auth`);
+    
+    // Construct the Telegram OAuth URL
+    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(window.location.origin)}&return_to=${redirectUrl}&state=${state}`;
+    
+    // Open the authentication URL
+    window.location.href = telegramAuthUrl;
+  };
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
@@ -26,7 +55,7 @@ export default function LoginPage() {
             <div className="w-full flex justify-center gap-4 mb-6 text-center">
               <button 
                 className="w-fit py-2 px-8 border-2 border-gray-200 rounded-xl hover:border-blue-500 transition-colors"
-                onClick={() => navigate('/telegram-auth')}
+                onClick={initiateTegramAuth}
               >
                 <Telegram className="text-yellow-600 text-3xl mx-auto" />
                 <span className="mt-2 block text-sm text-yellow-600">Telegram</span>
