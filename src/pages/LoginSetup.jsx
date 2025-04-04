@@ -1,37 +1,59 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, Fingerprint, HelpCircle, Bot } from 'lucide-react';
+import { KeyRound, Fingerprint, HelpCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const telegramRef = useRef();
+  const [authError, setAuthError] = useState(null);
 
+  // This function will be called by the Telegram widget after successful authentication
   const handleTelegramAuth = (user) => {
     console.log("Telegram Auth Successful:", user);
     localStorage.setItem('telegramUser', JSON.stringify(user));
-    navigate('/otp'); // redirect to OTP or wherever you want
+    navigate('/otp'); // redirect to OTP page
   };
 
   useEffect(() => {
+    // Check URL parameters for successful login redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const telegramAuthData = urlParams.get('tgAuthResult');
+    
+    if (telegramAuthData) {
+      try {
+        // Decode the data from the URL parameter
+        const decodedData = decodeURIComponent(telegramAuthData);
+        const userData = JSON.parse(decodedData);
+        handleTelegramAuth(userData);
+      } catch (error) {
+        console.error("Error processing Telegram auth data:", error);
+        setAuthError("Failed to process authentication data");
+      }
+    }
+
+    // Setup Telegram login widget
     if (window.TelegramLoginWidget) return; // prevent duplicates
 
     const script = document.createElement('script');
-    script.src = "https://telegram.org/js/telegram-widget.js?7";
-    script.setAttribute('data-telegram-login', 'OneBoth99Bot'); // Replace with your bot username
+    script.src = "https://telegram.org/js/telegram-widget.js?22"; // Use the latest version
+    script.setAttribute('data-telegram-login', 'OneBoth99Bot'); // Your bot username
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '10');
     script.setAttribute('data-userpic', 'false');
     script.setAttribute('data-request-access', 'write');
-    script.setAttribute('data-onauth', 'handleTelegramAuth');
+    
+    // Important: Use redirect auth instead of callback
+    script.setAttribute('data-auth-url', 'https://text-onestep-auth-josimar.vercel.app/otp');
+    
     script.async = true;
     telegramRef.current.innerHTML = ''; // clear old widget if re-rendered
     telegramRef.current.appendChild(script);
 
-    // Make the function globally available for Telegram widget
-    window.handleTelegramAuth = handleTelegramAuth;
-
     return () => {
-      delete window.handleTelegramAuth;
+      // Cleanup if component unmounts
+      if (telegramRef.current) {
+        telegramRef.current.innerHTML = '';
+      }
     };
   }, []);
 
@@ -53,6 +75,13 @@ export default function LoginPage() {
             <div className="w-full flex justify-center gap-4 mb-6 text-center">
               <div ref={telegramRef}></div>
             </div>
+
+            {/* Error message if any */}
+            {authError && (
+              <div className="text-red-400 text-sm mt-2">
+                {authError}
+              </div>
+            )}
 
             <p className="text-sm text-gray-500">Kindly select a Messenger</p>
           </div>
