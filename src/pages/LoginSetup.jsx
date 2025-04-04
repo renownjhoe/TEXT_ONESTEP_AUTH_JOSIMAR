@@ -1,86 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyRound, Fingerprint, HelpCircle, MessageCircle } from 'lucide-react';
 
-// Custom Telegram Login Button Component
+// Official Telegram Login Button Component
 const TelegramLoginButton = ({ onAuth }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const initiateLogin = () => {
-    setIsLoading(true);
+  const telegramBtnRef = useRef(null);
+
+  useEffect(() => {
+    // Create script element for Telegram widget
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.async = true;
+    script.setAttribute('data-telegram-login', 'OneBoth99Bot');
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-auth-url', 'https://text-onestep-auth-josimar.vercel.app/otp');
+    script.setAttribute('data-request-access', 'write');
     
-    // Generate a unique state for this login attempt
-    const state = Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('telegram_auth_state', state);
-    
-    // Calculate redirect URL (your app)
-    const redirectUri = encodeURIComponent(`https://text-onestep-auth-josimar.vercel.app/otp`);
-    
-    // Bot ID (you'll need to replace this with your bot's ID)
-    const botId = '7659055031'; // Your OneBoth99Bot ID
-    
-    // Construct Telegram OAuth URL
-    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent('https://text-onestep-auth-josimar.vercel.app')}&return_to=${redirectUri}&request_access=write&state=${state}`;
-    
-    // Open in a popup window
-    const popupWidth = 550;
-    const popupHeight = 470;
-    const left = window.innerWidth / 2 - popupWidth / 2;
-    const top = window.innerHeight / 2 - popupHeight / 2;
-    
-    const popup = window.open(
-      telegramAuthUrl, 
-      'TelegramAuth',
-      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`
-    );
-    
-    // Listen for messages from the popup
-    const messageListener = (event) => {
-      // Make sure message is from our popup and contains auth data
-      if (event.source === popup && event.data && event.data.telegram_auth) {
-        window.removeEventListener('message', messageListener);
-        setIsLoading(false);
-        
-        // Process auth data
-        const authData = event.data.telegram_auth;
-        if (authData.state === localStorage.getItem('telegram_auth_state')) {
-          // State matches, auth is valid
-          onAuth(authData);
-        }
-      }
+    // Set up callback function to be called when user is authenticated
+    window.onTelegramAuth = (user) => {
+      onAuth(user);
     };
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     
-    window.addEventListener('message', messageListener);
+    // Add the script to the container
+    if (telegramBtnRef.current) {
+      telegramBtnRef.current.innerHTML = '';
+      telegramBtnRef.current.appendChild(script);
+    }
     
-    // Set a timeout to handle case where popup is closed without completing auth
-    setTimeout(() => {
-      if (popup.closed) {
-        window.removeEventListener('message', messageListener);
-        setIsLoading(false);
+    return () => {
+      // Clean up when component unmounts
+      if (telegramBtnRef.current) {
+        telegramBtnRef.current.innerHTML = '';
       }
-    }, 1000);
-  };
+      delete window.onTelegramAuth;
+    };
+  }, [onAuth]);
   
-  return (
-    <button
-      onClick={initiateLogin}
-      disabled={isLoading}
-      className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
-    >
-      {isLoading ? (
-        <span className="animate-pulse">Connecting...</span>
-      ) : (
-        <>
-          <MessageCircle size={20} />
-          <span>Login with Telegram</span>
-        </>
-      )}
-    </button>
-  );
+  return <div ref={telegramBtnRef} className="telegram-login-container"></div>;
 };
 
-// Create a separate callback page component
+// Create a separate callback page component for when redirected back from Telegram
 export const TelegramCallbackPage = () => {
+  const navigate = useNavigate();
+  
   useEffect(() => {
     // Extract auth data from URL
     const params = new URLSearchParams(window.location.search);
@@ -90,16 +53,10 @@ export const TelegramCallbackPage = () => {
       authData[key] = value;
     }
     
-    // Send data back to opener and close
-    if (window.opener) {
-      window.opener.postMessage({ telegram_auth: authData }, window.location.origin);
-      window.close();
-    } else {
-      // Fallback if opener is not available
-      localStorage.setItem('telegram_auth_data', JSON.stringify(authData));
-      window.location.href = '/';
-    }
-  }, []);
+    // Store auth data and redirect to main page
+    localStorage.setItem('telegramUser', JSON.stringify(authData));
+    navigate('/');
+  }, [navigate]);
   
   return (
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -115,12 +72,14 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Check if we have stored auth data from callback redirect
-    const storedAuthData = localStorage.getItem('telegram_auth_data');
+    const storedAuthData = localStorage.getItem('telegramUser');
     if (storedAuthData) {
       try {
         const authData = JSON.parse(storedAuthData);
-        handleAuthSuccess(authData);
-        localStorage.removeItem('telegram_auth_data'); // Clear after use
+        // Only process if we haven't already redirected to OTP
+        if (window.location.pathname !== '/otp') {
+          handleAuthSuccess(authData);
+        }
       } catch (error) {
         console.error('Error processing stored auth data:', error);
       }
@@ -128,15 +87,15 @@ export default function LoginPage() {
   }, []);
 
   const handleAuthSuccess = (userData) => {
-    console.log("Telegram Auth Successful:", userData);
-    localStorage.setItem('telegramUser', JSON.stringify(userData));
-    navigate('/otp');
+      console.log("Telegram Auth Successful:", userData);
+      localStorage.setItem('telegramUser', JSON.stringify(userData));
+      navigate('/otp');
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP 2</h1>
+        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP</h1>
 
         <div className="space-y-8">
           <div className="text-center">
@@ -147,8 +106,8 @@ export default function LoginPage() {
               Use the Onestep Verification to Log into your Account
             </p>
 
-            {/* Custom Telegram Login Button */}
-            <div className="w-full flex justify-center gap-4 mb-6">
+            {/* Official Telegram Login Button */}
+            <div className="w-full flex justify-center mb-6">
               <TelegramLoginButton onAuth={handleAuthSuccess} />
             </div>
 
