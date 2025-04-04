@@ -2,14 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyRound, Fingerprint, HelpCircle, MessageCircle } from 'lucide-react';
 
+// Function to generate a 6-digit token
+const generateSixDigitToken = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 // Official Telegram Login Button Component
 const TelegramLoginButton = ({ onAuth }) => {
   const telegramBtnRef = useRef(null);
 
   useEffect(() => {
-    // Generate token for this login session
-    const token = Math.random().toString(36).substring(2, 15) + 
-                 Math.random().toString(36).substring(2, 15);
+    // Generate 6-digit token for this login session
+    const token = generateSixDigitToken();
     localStorage.setItem('auth_token', token);
     
     // Create script element for Telegram widget
@@ -108,9 +112,8 @@ export default function LoginPage() {
     
     // Ensure we have a token
     if (!userData.token) {
-      // Generate a token if one doesn't exist
-      userData.token = Math.random().toString(36).substring(2, 15) + 
-                      Math.random().toString(36).substring(2, 15);
+      // Generate a 6-digit token if one doesn't exist
+      userData.token = generateSixDigitToken();
     }
     
     localStorage.setItem('telegramUser', JSON.stringify(userData));
@@ -182,8 +185,8 @@ export default function LoginPage() {
           <button 
             className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1"
             onClick={() => {
-              // Debug shortcut with token
-              const debugToken = `debug_token_${Date.now()}`;
+              // Debug shortcut with 6-digit token
+              const debugToken = generateSixDigitToken();
               handleAuthSuccess({
                 id: 12345678,
                 first_name: "Test",
