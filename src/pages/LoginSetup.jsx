@@ -7,17 +7,28 @@ const TelegramLoginButton = ({ onAuth }) => {
   const telegramBtnRef = useRef(null);
 
   useEffect(() => {
+    // Generate token for this login session
+    const token = Math.random().toString(36).substring(2, 15) + 
+                 Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('auth_token', token);
+    
     // Create script element for Telegram widget
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
     script.setAttribute('data-telegram-login', 'OneBoth99Bot');
     script.setAttribute('data-size', 'large');
-    script.setAttribute('data-auth-url', 'https://text-onestep-auth-josimar.vercel.app/otp');
+    
+    // Add token to auth URL
+    const authUrl = new URL('https://text-onestep-auth-josimar.vercel.app/otp');
+    authUrl.searchParams.append('token', token);
+    script.setAttribute('data-auth-url', authUrl.toString());
     script.setAttribute('data-request-access', 'write');
     
     // Set up callback function to be called when user is authenticated
     window.onTelegramAuth = (user) => {
+      // Add token to user data
+      user.token = token;
       onAuth(user);
     };
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
@@ -51,6 +62,12 @@ export const TelegramCallbackPage = () => {
     
     for (const [key, value] of params.entries()) {
       authData[key] = value;
+    }
+    
+    // Add stored token to auth data if it exists
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      authData.token = token;
     }
     
     // Store auth data and redirect to main page
@@ -87,9 +104,21 @@ export default function LoginPage() {
   }, []);
 
   const handleAuthSuccess = (userData) => {
-      console.log("Telegram Auth Successful:", userData);
-      localStorage.setItem('telegramUser', JSON.stringify(userData));
-      navigate('/otp');
+    console.log("Telegram Auth Successful:", userData);
+    
+    // Ensure we have a token
+    if (!userData.token) {
+      // Generate a token if one doesn't exist
+      userData.token = Math.random().toString(36).substring(2, 15) + 
+                      Math.random().toString(36).substring(2, 15);
+    }
+    
+    localStorage.setItem('telegramUser', JSON.stringify(userData));
+    
+    // Optional: Send token to backend here
+    // sendTokenToBackend(userData.id, userData.token);
+    
+    navigate('/otp');
   };
 
   return (
@@ -153,12 +182,14 @@ export default function LoginPage() {
           <button 
             className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1"
             onClick={() => {
-              // Debug shortcut
+              // Debug shortcut with token
+              const debugToken = `debug_token_${Date.now()}`;
               handleAuthSuccess({
                 id: 12345678,
                 first_name: "Test",
                 username: "test_user",
-                auth_date: Math.floor(Date.now() / 1000)
+                auth_date: Math.floor(Date.now() / 1000),
+                token: debugToken
               });
             }}
           >
