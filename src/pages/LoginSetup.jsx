@@ -24,10 +24,10 @@ export default function LoginPage() {
     localStorage.setItem('telegramAuthState', state);
     
     // Redirect parameters
-    const redirectUrl = encodeURIComponent(`${window.location.origin}/handle-telegram-auth`);
+    const redirectUrl = encodeURIComponent(`https://text-onestep-auth-josimar.vercel.app/handle-telegram-auth`);
     
     // Construct the Telegram OAuth URL
-    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(window.location.origin)}&return_to=${redirectUrl}&state=${state}`;
+    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=https://text-onestep-auth-josimar.vercel.app&return_to=${redirectUrl}&state=${state}`;
     
     // Open the authentication URL
     window.location.href = telegramAuthUrl;
@@ -45,7 +45,7 @@ export default function LoginPage() {
           {/* ID Verification Section */}
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
-              USE ONESTEPID TO LOGIN
+              USE ONESTEPID TO LOGIN 2
             </h2>
             <p className="text-gray-600 mb-6">
               Use the Onestep Verification to Log into your Account
