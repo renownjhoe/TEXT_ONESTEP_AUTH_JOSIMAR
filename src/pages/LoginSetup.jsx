@@ -62,7 +62,7 @@ export default function LoginPage() {
       {/* Added dark background, subtle border, increased padding */}
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-8">
         {/* Header - Adjusted color for dark theme */}
-        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP</h1>
+        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP 2</h1>
 
         {/* Login Methods */}
         <div className="space-y-8">
