@@ -1,101 +1,142 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, Fingerprint, HelpCircle } from 'lucide-react';
+import { KeyRound, Fingerprint, HelpCircle, MessageCircle } from 'lucide-react';
 
+// Custom Telegram Login Button Component
+const TelegramLoginButton = ({ onAuth }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const initiateLogin = () => {
+    setIsLoading(true);
+    
+    // Generate a unique state for this login attempt
+    const state = Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('telegram_auth_state', state);
+    
+    // Calculate redirect URL (your app)
+    const redirectUri = encodeURIComponent(`https://text-onestep-auth-josimar.vercel.app/otp`);
+    
+    // Bot ID (you'll need to replace this with your bot's ID)
+    const botId = '7659055031'; // Your OneBoth99Bot ID
+    
+    // Construct Telegram OAuth URL
+    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent('https://text-onestep-auth-josimar.vercel.app')}&return_to=${redirectUri}&request_access=write&state=${state}`;
+    
+    // Open in a popup window
+    const popupWidth = 550;
+    const popupHeight = 470;
+    const left = window.innerWidth / 2 - popupWidth / 2;
+    const top = window.innerHeight / 2 - popupHeight / 2;
+    
+    const popup = window.open(
+      telegramAuthUrl, 
+      'TelegramAuth',
+      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`
+    );
+    
+    // Listen for messages from the popup
+    const messageListener = (event) => {
+      // Make sure message is from our popup and contains auth data
+      if (event.source === popup && event.data && event.data.telegram_auth) {
+        window.removeEventListener('message', messageListener);
+        setIsLoading(false);
+        
+        // Process auth data
+        const authData = event.data.telegram_auth;
+        if (authData.state === localStorage.getItem('telegram_auth_state')) {
+          // State matches, auth is valid
+          onAuth(authData);
+        }
+      }
+    };
+    
+    window.addEventListener('message', messageListener);
+    
+    // Set a timeout to handle case where popup is closed without completing auth
+    setTimeout(() => {
+      if (popup.closed) {
+        window.removeEventListener('message', messageListener);
+        setIsLoading(false);
+      }
+    }, 1000);
+  };
+  
+  return (
+    <button
+      onClick={initiateLogin}
+      disabled={isLoading}
+      className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+    >
+      {isLoading ? (
+        <span className="animate-pulse">Connecting...</span>
+      ) : (
+        <>
+          <MessageCircle size={20} />
+          <span>Login with Telegram</span>
+        </>
+      )}
+    </button>
+  );
+};
+
+// Create a separate callback page component
+export const TelegramCallbackPage = () => {
+  useEffect(() => {
+    // Extract auth data from URL
+    const params = new URLSearchParams(window.location.search);
+    const authData = {};
+    
+    for (const [key, value] of params.entries()) {
+      authData[key] = value;
+    }
+    
+    // Send data back to opener and close
+    if (window.opener) {
+      window.opener.postMessage({ telegram_auth: authData }, window.location.origin);
+      window.close();
+    } else {
+      // Fallback if opener is not available
+      localStorage.setItem('telegram_auth_data', JSON.stringify(authData));
+      window.location.href = '/';
+    }
+  }, []);
+  
+  return (
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      <p>Processing login... Please wait.</p>
+    </div>
+  );
+};
+
+// Main Login Page
 export default function LoginPage() {
   const navigate = useNavigate();
-  const telegramRef = useRef();
   const [authError, setAuthError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState(null);
 
-  // Set up Telegram login widget with debugging
   useEffect(() => {
-    // Check URL parameters for debug info and auth results
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('tgAuthResult')) {
-      const authData = urlParams.get('tgAuthResult');
-      setDebugInfo(`Auth data received: ${authData.substring(0, 20)}...`);
+    // Check if we have stored auth data from callback redirect
+    const storedAuthData = localStorage.getItem('telegram_auth_data');
+    if (storedAuthData) {
       try {
-        const userData = JSON.parse(decodeURIComponent(authData));
-        console.log("Telegram auth data:", userData);
-        localStorage.setItem('telegramUser', JSON.stringify(userData));
-        setDebugInfo("Auth successful! Redirecting...");
-        // Wait a moment to show the debug message before redirecting
-        setTimeout(() => navigate('/otp'), 1000);
+        const authData = JSON.parse(storedAuthData);
+        handleAuthSuccess(authData);
+        localStorage.removeItem('telegram_auth_data'); // Clear after use
       } catch (error) {
-        console.error("Failed to process auth data:", error);
-        setAuthError(`Auth data parsing error: ${error.message}`);
+        console.error('Error processing stored auth data:', error);
       }
     }
+  }, []);
 
-    // Setup debug listener for postMessage
-    const messageHandler = (event) => {
-      if (event.data && event.data.telegram) {
-        console.log("Telegram postMessage received:", event.data);
-        setDebugInfo(`Telegram event: ${JSON.stringify(event.data)}`);
-      }
-    };
-    window.addEventListener('message', messageHandler);
-
-    // Clear any existing widgets first
-    if (telegramRef.current) {
-      telegramRef.current.innerHTML = '';
-    }
-
-    // Create a fresh script element
-    const script = document.createElement('script');
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute('data-telegram-login', 'OneBoth99Bot');
-    script.setAttribute('data-size', 'large');
-    script.setAttribute('data-radius', '10');
-    script.setAttribute('data-userpic', 'false');
-    script.setAttribute('data-request-access', 'write');
-    
-    // Use both methods to maximize compatibility
-    script.setAttribute('data-auth-url', 'https://text-onestep-auth-josimar.vercel.app/otp');
-    script.async = true;
-    
-    // Add onload handler to debug script loading
-    script.onload = () => {
-      console.log("Telegram widget script loaded successfully");
-      setDebugInfo("Telegram widget loaded");
-    };
-
-    script.onerror = (error) => {
-      console.error("Failed to load Telegram widget:", error);
-      setAuthError("Failed to load Telegram login widget");
-    };
-
-    // Append the script to our container
-    if (telegramRef.current) {
-      telegramRef.current.appendChild(script);
-    }
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('message', messageHandler);
-    };
-  }, [navigate]);
-
-  // Handle direct login for testing (debug only)
-  const handleDirectLogin = () => {
-    // Simulate successful auth for testing
-    const mockUser = {
-      id: 123456789,
-      first_name: 'Test',
-      username: 'testuser',
-      photo_url: '',
-      auth_date: Math.floor(Date.now() / 1000),
-      hash: 'test_hash'
-    };
-    localStorage.setItem('telegramUser', JSON.stringify(mockUser));
+  const handleAuthSuccess = (userData) => {
+    console.log("Telegram Auth Successful:", userData);
+    localStorage.setItem('telegramUser', JSON.stringify(userData));
     navigate('/otp');
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP 1</h1>
+        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP 2</h1>
 
         <div className="space-y-8">
           <div className="text-center">
@@ -106,21 +147,14 @@ export default function LoginPage() {
               Use the Onestep Verification to Log into your Account
             </p>
 
-            {/* Telegram Login Widget */}
-            <div className="w-full flex justify-center gap-4 mb-6 text-center">
-              <div ref={telegramRef}></div>
+            {/* Custom Telegram Login Button */}
+            <div className="w-full flex justify-center gap-4 mb-6">
+              <TelegramLoginButton onAuth={handleAuthSuccess} />
             </div>
-
-            {/* Debug info */}
-            {debugInfo && (
-              <div className="text-yellow-400 text-sm mt-2 mb-2 p-2 bg-gray-700 rounded">
-                {debugInfo}
-              </div>
-            )}
 
             {/* Error message */}
             {authError && (
-              <div className="text-red-400 text-sm mt-2 mb-2 p-2 bg-gray-700 rounded">
+              <div className="text-red-400 text-sm mt-2">
                 {authError}
               </div>
             )}
@@ -157,17 +191,20 @@ export default function LoginPage() {
         </div>
 
         <div className="w-full mt-10 text-center">
-          <button
-            className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1 mb-2"
-            onClick={handleDirectLogin}
+          <button 
+            className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1"
+            onClick={() => {
+              // Debug shortcut
+              handleAuthSuccess({
+                id: 12345678,
+                first_name: "Test",
+                username: "test_user",
+                auth_date: Math.floor(Date.now() / 1000)
+              });
+            }}
           >
             <HelpCircle size={16} />
-            Debug: Skip Telegram Login
-          </button>
-          
-          <button className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1">
-            <HelpCircle size={16} />
-            Having trouble logging in?
+            Skip login (Debug)
           </button>
         </div>
 
