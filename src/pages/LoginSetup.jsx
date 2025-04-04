@@ -1,9 +1,13 @@
+import React from 'react';
+// Assuming you are using react-router-dom v6+
 import { useNavigate } from 'react-router-dom';
-import { Fingerprint, Key, Telegram, QuestionMark } from '@mui/icons-material';
+// Using lucide-react icons as Material UI might not be set up
+// You might need to install it: npm install lucide-react
+import { KeyRound, Fingerprint, HelpCircle, Bot } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  
+
   // Function to generate a random string for state parameter
   const generateRandomString = (length = 20) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -15,101 +19,124 @@ export default function LoginPage() {
   };
 
   // Handle Telegram login manually without widget
-  const initiateTegramAuth = () => {
-    // Your Telegram bot's numeric ID (not username)
-    const botId = '7659055031'; // Replace with your actual bot's numeric ID
-    
+  const initiateTelegramAuth = () => {
+    console.log("Initiating Telegram Auth...");
+
+    // !!! IMPORTANT: Replace with your actual bot's numeric ID !!!
+    const botId = '7659055031'; // Example ID, replace with yours
+    console.log("Using Bot ID:", botId);
+
     // Generate and store state parameter to prevent CSRF
     const state = generateRandomString();
-    localStorage.setItem('telegramAuthState', state);
-    
-    // Redirect parameters
-    const redirectUrl = encodeURIComponent(`https://text-onestep-auth-josimar.vercel.app/handle-telegram-auth`);
-    
+    try {
+      localStorage.setItem('telegramAuthState', state);
+      console.log("Stored state in localStorage:", state);
+    } catch (error) {
+      console.error("Failed to store state in localStorage:", error);
+      // Handle potential storage errors (e.g., private browsing mode)
+      alert("Could not store authentication state. Please ensure cookies/localStorage are enabled.");
+      return;
+    }
+
+    // Your application's domain and the callback path
+    const appOrigin = 'https://text-onestep-auth-josimar.vercel.app'; // Make sure this matches BotFather domain
+    const callbackPath = '/otp';
+    const redirectUrl = `${appOrigin}${callbackPath}`;
+    const encodedRedirectUrl = encodeURIComponent(redirectUrl);
+    console.log("App Origin:", appOrigin);
+    console.log("Redirect URL:", redirectUrl);
+    console.log("Encoded Redirect URL:", encodedRedirectUrl);
+
+
     // Construct the Telegram OAuth URL
-    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=https://text-onestep-auth-josimar.vercel.app&return_to=${redirectUrl}&state=${state}`;
-    
+    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(appOrigin)}&return_to=${encodedRedirectUrl}&request_access=write&state=${state}`;
+    console.log("Constructed Telegram Auth URL:", telegramAuthUrl);
+
     // Open the authentication URL
     window.location.href = telegramAuthUrl;
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 font-sans">
       {/* Main Container */}
-      <div className="w-full max-w-md bg-black rounded-2xl shadow-sm p-8">
-        {/* Header */}
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-6">ONESTEP</h1>
-        
+      {/* Added dark background, subtle border, increased padding */}
+      <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-8">
+        {/* Header - Adjusted color for dark theme */}
+        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP</h1>
+
         {/* Login Methods */}
         <div className="space-y-8">
-          {/* ID Verification Section */}
+          {/* ID Verification Section - Adjusted text colors */}
           <div className="text-center">
-            <h2 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2">
-              USE ONESTEPID TO LOGIN 2
+            <h2 className="text-xl font-semibold mb-4 flex items-center justify-center gap-2 text-gray-200">
+              USE ONESTEPID TO LOGIN
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-400 mb-6">
               Use the Onestep Verification to Log into your Account
             </p>
-            
-            {/* Messenger Selection */}
+
+            {/* Messenger Selection - Improved styling */}
             <div className="w-full flex justify-center gap-4 mb-6 text-center">
-              <button 
-                className="w-fit py-2 px-8 border-2 border-gray-200 rounded-xl hover:border-blue-500 transition-colors"
-                onClick={initiateTegramAuth}
+              <button
+                className="w-fit py-3 px-6 border-2 border-gray-600 rounded-xl hover:border-blue-500 hover:bg-gray-700 transition-all duration-200 ease-in-out flex flex-col items-center group"
+                onClick={initiateTelegramAuth} // Corrected function name
               >
-                <Telegram className="text-yellow-600 text-3xl mx-auto" />
-                <span className="mt-2 block text-sm text-yellow-600">Telegram</span>
+                {/* Using Lucide Bot icon */}
+                <Bot className="text-blue-400 text-3xl mx-auto group-hover:scale-110 transition-transform" />
+                <span className="mt-2 block text-sm text-blue-400">Telegram</span>
               </button>
+              {/* Add buttons for other messengers here if needed */}
             </div>
 
             <p className="text-sm text-gray-500">
-              Kindly select a Messenger below
+              Kindly select a Messenger
             </p>
           </div>
 
-          {/* Divider */}
+          {/* Divider - Adjusted for dark theme */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-600"></div>
             </div>
             <div className="relative flex justify-center">
-              <span className="px-2 bg-white text-gray-500 text-sm">OR</span>
+              {/* Adjusted background to match container */}
+              <span className="px-3 bg-gray-800 text-gray-400 text-sm font-medium rounded-full">OR</span>
             </div>
           </div>
 
-          {/* Alternative Methods */}
+          {/* Alternative Methods - Adjusted colors and icons */}
           <div className="space-y-4">
-            <button 
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            <button
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
               onClick={() => navigate('/passcode-setup')}
             >
-              <Key className="text-white" />
+              <KeyRound size={20} /> {/* Lucide icon */}
               Use Passcode
             </button>
-            
-            <button 
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50"
+
+            <button
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-900 hover:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
               onClick={() => navigate('/biometric-setup')}
             >
-              <Fingerprint />
+              <Fingerprint size={20} /> {/* Lucide icon */}
               Use Biometrics
             </button>
           </div>
         </div>
 
-        {/* Help Section */}
-        <div className="w-full mt-8 text-center">
-          <button className="w-full text-blue-600 text-sm hover:underline flex items-center justify-center gap-1">
-            <QuestionMark fontSize="small" />
+        {/* Help Section - Adjusted colors */}
+        <div className="w-full mt-10 text-center">
+          <button className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1">
+            <HelpCircle size={16} />
             Having trouble logging in?
           </button>
         </div>
 
-        {/* Signup Prompt */}
-        <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-          <p className="text-gray-600">New to ONESTEP?</p>
-          <button 
-            className="text-blue-600 font-semibold mt-2 hover:underline"
+        {/* Signup Prompt - Adjusted colors and border */}
+        <div className="mt-8 pt-6 border-t border-gray-700 text-center">
+          <p className="text-gray-400">New to ONESTEP?</p>
+          <button
+            className="text-blue-400 font-semibold mt-2 hover:underline"
             onClick={() => navigate('/signup')}
           >
             Create Account
@@ -117,8 +144,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="mt-8 text-center text-sm text-gray-600">
+      {/* Footer - Adjusted color */}
+      <footer className="mt-8 text-center text-sm text-gray-500">
         <p>By using Login you agree to our Terms & Privacy Policy</p>
       </footer>
     </div>
