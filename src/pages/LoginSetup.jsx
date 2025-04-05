@@ -1,127 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, Fingerprint, HelpCircle, MessageCircle } from 'lucide-react';
+import { KeyRound, Fingerprint } from 'lucide-react';
+import {TelegramLoginButton} from '../components/TelegramLoginButton';
 
-// Function to generate a 6-digit token
-const generateSixDigitToken = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-// Official Telegram Login Button Component
-const TelegramLoginButton = ({ onAuth }) => {
-  const telegramBtnRef = useRef(null);
-
-  useEffect(() => {
-    // Generate 6-digit token for this login session
-    const token = generateSixDigitToken();
-    localStorage.setItem('auth_token', token);
-    
-    // Create script element for Telegram widget
-    const script = document.createElement('script');
-    script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.async = true;
-    script.setAttribute('data-telegram-login', 'OneBoth99Bot');
-    script.setAttribute('data-size', 'large');
-    
-    // Add token to auth URL
-    const authUrl = new URL('https://text-onestep-auth-josimar.vercel.app/otp');
-    authUrl.searchParams.append('token', token);
-    script.setAttribute('data-auth-url', authUrl.toString());
-    script.setAttribute('data-request-access', 'write');
-    
-    // Set up callback function to be called when user is authenticated
-    window.onTelegramAuth = (user) => {
-      // Add token to user data
-      user.token = token;
-      onAuth(user);
-    };
-    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-    
-    // Add the script to the container
-    if (telegramBtnRef.current) {
-      telegramBtnRef.current.innerHTML = '';
-      telegramBtnRef.current.appendChild(script);
-    }
-    
-    return () => {
-      // Clean up when component unmounts
-      if (telegramBtnRef.current) {
-        telegramBtnRef.current.innerHTML = '';
-      }
-      delete window.onTelegramAuth;
-    };
-  }, [onAuth]);
-  
-  return <div ref={telegramBtnRef} className="telegram-login-container"></div>;
-};
-
-// Create a separate callback page component for when redirected back from Telegram
-export const TelegramCallbackPage = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Extract auth data from URL
-    const params = new URLSearchParams(window.location.search);
-    const authData = {};
-    
-    for (const [key, value] of params.entries()) {
-      authData[key] = value;
-    }
-    
-    // Add stored token to auth data if it exists
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      authData.token = token;
-    }
-    
-    // Store auth data and redirect to main page
-    localStorage.setItem('telegramUser', JSON.stringify(authData));
-    navigate('/');
-  }, [navigate]);
-  
-  return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <p>Processing login... Please wait.</p>
-    </div>
-  );
-};
-
-// Main Login Page
 export default function LoginPage() {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    // Check if we have stored auth data from callback redirect
-    const storedAuthData = localStorage.getItem('telegramUser');
-    if (storedAuthData) {
-      try {
-        const authData = JSON.parse(storedAuthData);
-        // Only process if we haven't already redirected to OTP
-        if (window.location.pathname !== '/otp') {
-          handleAuthSuccess(authData);
-        }
-      } catch (error) {
-        console.error('Error processing stored auth data:', error);
-      }
+    // Check if user is already authenticated
+    const isAuthenticated = sessionStorage.getItem('user_authenticated') === 'true';
+    if (isAuthenticated) {
+      navigate('/dashboard');
     }
-  }, []);
+  }, [navigate]);
 
   const handleAuthSuccess = (userData) => {
     console.log("Telegram Auth Successful:", userData);
     
-    // Ensure we have a token
-    if (!userData.token) {
-      // Generate a 6-digit token if one doesn't exist
-      userData.token = generateSixDigitToken();
-    }
-    
+    // Store user data for reference
     localStorage.setItem('telegramUser', JSON.stringify(userData));
     
-    // Optional: Send token to backend here
-    // sendTokenToBackend(userData.id, userData.token);
-    
-    navigate('/otp');
+    // Navigate to callback page which will handle OTP generation and sending
+    navigate('/auth/telegram/callback');
   };
 
   return (
@@ -179,26 +81,6 @@ export default function LoginPage() {
               Use Biometrics
             </button>
           </div>
-        </div>
-
-        <div className="w-full mt-10 text-center">
-          <button 
-            className="w-full text-blue-400 text-sm hover:underline flex items-center justify-center gap-1"
-            onClick={() => {
-              // Debug shortcut with 6-digit token
-              const debugToken = generateSixDigitToken();
-              handleAuthSuccess({
-                id: 12345678,
-                first_name: "Test",
-                username: "test_user",
-                auth_date: Math.floor(Date.now() / 1000),
-                token: debugToken
-              });
-            }}
-          >
-            <HelpCircle size={16} />
-            Skip login (Debug)
-          </button>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-700 text-center">

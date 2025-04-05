@@ -12,6 +12,7 @@ import OTPPage from './pages/OTPPage';
 import AccountSetup from './pages/AccountSetup';
 import './App.css';
 import TelegramAuth from './pages/TelegramAuth';
+import TelegramCallbackPage from './pages/TelegramCallbackPage';
 
 function App() {
   return (
@@ -23,12 +24,14 @@ function App() {
           <Route path="/" element={<LoginSetup />} />
           <Route path="/signup" element={<RegisterSetup />} />
           <Route path="/telegram-auth" element={<TelegramAuth />} />
+          <Route path="/auth/telegram/callback" element={<TelegramCallbackPage />} />
           <Route path="/otp" element={<OTPPage />} />
           <Route path="/account-setup" element={<AccountSetup />} />
           <Route path="/passcode-setup" element={<PasscodeSetup />} />
           <Route path="/biometric-setup" element={<BiometricSetup />} />
           <Route path="/kyc-setup" element={<KYCSetup />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
