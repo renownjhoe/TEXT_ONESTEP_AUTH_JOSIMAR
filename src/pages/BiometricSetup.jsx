@@ -42,6 +42,19 @@ const BiometricsSetup = () => {
 
   useEffect(() => {
     if (touchIDSetup && faceIDSetup) {
+      // Get Telegram user data from localStorage
+      const telegramUserJSON = localStorage.getItem('telegramUser');
+      const telegramUser = telegramUserJSON ? JSON.parse(telegramUserJSON) : {}      
+        // Update telegramUser with passcode
+      const updatedUser = {
+          ...telegramUser,
+          touchIDSetup: true,
+          faceIDSetup: true,
+      };
+      
+      // Save updated user to localStorage
+      localStorage.setItem('telegramUser', JSON.stringify(updatedUser));
+
       setBothConfirmed(true);
       setTimeout(() => {
         navigate('/kyc-setup');
