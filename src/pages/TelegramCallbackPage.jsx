@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateSixDigitToken } from './utils';
-import { sendOTPToTelegram } from './api';
+import { generateSixDigitToken } from '../utils/utils';
+import { sendOTPToTelegram } from '../services/api';
 
 export const TelegramCallbackPage = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import {mockAPI as api} from '../services/api';
 import KYCUpload from '../components/KYCUpload';
 import { AlertCircle, UploadCloud } from "lucide-react"
 

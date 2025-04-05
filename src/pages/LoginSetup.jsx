@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KeyRound, Fingerprint } from 'lucide-react';
-import {TelegramLoginButton} from '../components/TelegramLoginButton';
+import TelegramLoginButton from '../components/TelegramLoginButton';
 
 export default function LoginPage() {
   const navigate = useNavigate();
