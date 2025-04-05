@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {mockAPI as api} from '../services/api';
+import { mockAPI as api } from '../services/api';
 import KYCUpload from '../components/KYCUpload';
 import { AlertCircle, UploadCloud } from "lucide-react"
-
-// Helper function for basic passcode strength check
-const isPasscodeStrong = (passcode) => {
-    return passcode.length >= 8 && /[a-zA-Z]/.test(passcode) && /\d/.test(passcode);
-};
-
-// Helper function to check if passcode is similar to DOB
-const isPasscodeSimilarToDOB = (passcode, dob) => {
-    const cleanDOB = dob.replace(/[-/]/g, '');
-    return cleanDOB.includes(passcode) || passcode.includes(cleanDOB);
-};
 
 export default function KYCSetup() {
     const [selfie, setSelfie] = useState(null);
@@ -23,14 +12,43 @@ export default function KYCSetup() {
     const [errors, setErrors] = useState([]);
     const { state, dispatch } = useAuth();
     const navigate = useNavigate();
-    const [passcode, setPasscode] = useState('');
-    const [passcodeError, setPasscodeError] = useState(null);    
+    const [formData, setFormData] = useState({  // Added state for form data
+        fullName: '',
+        phone: '',
+        email: '',
+        dob: '',
+        country: '',
+        city: '',
+        address1: '',
+        zip: '',
+        address2: '',
+    });
 
     useEffect(() => {
-        if (!state.user) { 
-          navigate('/');
-         }
+        if (!state.user) {
+            navigate('/');
+        }
+
+        // Load data from localStorage
+        const telegramUserJSON = localStorage.getItem('telegramUser');
+        if (telegramUserJSON) {
+            const userData = JSON.parse(telegramUserJSON);
+            setFormData(prevData => ({
+                ...prevData,
+                fullName: userData.fullName || '',
+                phone: userData.phone || '',
+                dob: userData.dob || '',
+            }));
+        }
     }, [navigate, state.user]);
+
+    const handleInputChange = (e) => { // Added handler for input changes
+        const { id, value } = e.target;
+        setFormData(prevData => ({
+            ...prevData,
+            [id]: value,
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,31 +66,18 @@ export default function KYCSetup() {
         }
         setErrors(newErrors);
 
-        if (!passcode) {
-            setPasscodeError('Passcode is required');
-            hasErrors = true;
-        } else if (isPasscodeSimilarToDOB(passcode, state.user?.dob || '')) {
-            setPasscodeError('Passcode cannot be similar to your date of birth.');
-            hasErrors = true;
-        } else if (!isPasscodeStrong(passcode)) {
-            setPasscodeError('Passcode must be at least 8 characters long and contain a letter and a number.');
-            hasErrors = true;
-        } else {
-            setPasscodeError(null);
-        }
-
         if (hasErrors) {
             return;
         }
 
         setLoading(true);
-        const formData = new FormData();
-        formData.append('name', state.user.fullName);
-        formData.append('selfie', selfie);
-        formData.append('idFile', idFile);
+        const formSubmitData = new FormData();
+        formSubmitData.append('name', formData.fullName); // Use formData here
+        formSubmitData.append('selfie', selfie);
+        formSubmitData.append('idFile', idFile);
 
         try {
-            const response = await api.submitKYC(formData);
+            const response = await api.submitKYC(formSubmitData);
             if (response.success) {
                 dispatch({ type: 'SET_KYC_STATUS', payload: 'processing' });
                 dispatch({ type: 'ADD_NOTIFICATION', payload: 'KYC submission successful' });
@@ -124,7 +129,8 @@ export default function KYCSetup() {
                                 <input
                                     id="fullName"
                                     type="text"
-                                    value={state.user?.fullName || ''}
+                                    value={formData.fullName}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -135,7 +141,8 @@ export default function KYCSetup() {
                                 <input
                                     id="phone"
                                     type="text"
-                                    value={state.user?.phone || ''}
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -149,6 +156,8 @@ export default function KYCSetup() {
                                 <input
                                     id="email"
                                     type="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -159,11 +168,13 @@ export default function KYCSetup() {
                                 <input
                                     id="dob"
                                     type="text"
+                                    value={formData.dob}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className='w-full'>
                                 <label htmlFor="country" className="block text-sm font-medium text-gray-300">
                                     Country of Residence
@@ -171,6 +182,8 @@ export default function KYCSetup() {
                                 <input
                                     id="country"
                                     type="text"
+                                    value={formData.country}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -184,6 +197,8 @@ export default function KYCSetup() {
                                 <input
                                     id="city"
                                     type="text"
+                                    value={formData.city}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -194,6 +209,8 @@ export default function KYCSetup() {
                                 <input
                                     id="address1"
                                     type="text"
+                                    value={formData.address1}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -207,6 +224,8 @@ export default function KYCSetup() {
                                 <input
                                     id="zip"
                                     type="text"
+                                    value={formData.zip}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -217,6 +236,8 @@ export default function KYCSetup() {
                                 <input
                                     id="address2"
                                     type="text"
+                                    value={formData.address2}
+                                    onChange={handleInputChange}
                                     className="w-full mt-1 bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
@@ -292,4 +313,3 @@ export default function KYCSetup() {
         </div>
     );
 }
-

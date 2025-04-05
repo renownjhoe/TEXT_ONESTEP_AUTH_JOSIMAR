@@ -13,22 +13,6 @@ export default function AccountSetup() {
   const telegramUserJSON = localStorage.getItem('telegramUser');
   const telegramUser = telegramUserJSON ? JSON.parse(telegramUserJSON) : {};
   
-  const isUserProfileComplete = (telegramUser) => {
-    const requiredFields = [
-      'fullName', 'phone', 'email', 'dob', 'passcode', 
-      'fingerPrint', 'faceId', 'city_of_residence', 
-      'state_of_residence', 'country_of_residence', 
-      'address1', 'address2', 'zip', 
-      'selfie_with_document', 'government_issue_id'
-    ];
-    
-    return requiredFields.every(field => 
-      Object.prototype.hasOwnProperty.call(telegramUser, field) && 
-      telegramUser[field] !== null && 
-      telegramUser[field] !== undefined
-    );
-  };
-  
   const [formData, setFormData] = useState({
     fullName: (telegramUser.last_name && telegramUser.first_name) ? `${telegramUser.last_name} ${telegramUser.first_name}` : '',
     dob: (telegramUser.dob) ? `${telegramUser.dob}` : '',

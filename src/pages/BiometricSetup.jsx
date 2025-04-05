@@ -12,7 +12,7 @@ const BiometricsSetup = () => {
   const [loadingFaceID, setLoadingFaceID] = useState(false);
   const [touchIDSetup, setTouchIDSetup] = useState(false);
   const [faceIDSetup, setFaceIDSetup] = useState(false);
-  const [bothConfirmed, setBothConfirmed] = useState(false);
+  // const [bothConfirmed, setBothConfirmed] = useState(false);
   const { dispatch, state } = useAuth();
 
 
@@ -55,7 +55,7 @@ const BiometricsSetup = () => {
       // Save updated user to localStorage
       localStorage.setItem('telegramUser', JSON.stringify(updatedUser));
 
-      setBothConfirmed(true);
+      // setBothConfirmed(true);
       setTimeout(() => {
         navigate('/kyc-setup');
       }, 5000);
