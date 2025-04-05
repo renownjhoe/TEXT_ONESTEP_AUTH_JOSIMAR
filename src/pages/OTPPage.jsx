@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {mockAPI as api} from '../services/api';
+import { mockAPI as api } from '../services/api';
 
 export default function OTPPage() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -12,11 +12,42 @@ export default function OTPPage() {
   const searchParams = new URLSearchParams(location.search);
   const setup = searchParams.get('setup') === 'true'; // Get the setup parameter
 
+  const isUserProfileComplete = (telegramUser) => {
+    const requiredFields = [
+      'fullName', 'phone', 'email', 'dob', 'passcode', 
+      'fingerPrint', 'faceId', 'city_of_residence', 
+      'state_of_residence', 'country_of_residence', 
+      'address1', 'address2', 'zip', 
+      'selfie_with_document', 'government_issue_id'
+    ];
+    
+    return requiredFields.every(field => 
+      Object.prototype.hasOwnProperty.call(telegramUser, field) && 
+      telegramUser[field] !== null && 
+      telegramUser[field] !== undefined
+    );
+  };
+
   const handleVerify = async () => {
     try {
       setLoading(true);
       const otpString = otp.join('');
-      const { success } = await api.verifyOTP(otpString);
+      
+      // Get the stored Telegram user info
+      const telegramUserJSON = localStorage.getItem('telegramUser');
+      
+      if (!telegramUserJSON) {
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          payload: { message: 'Authentication failed: No Telegram user data found', type: 'error' },
+        });
+        return;
+      }
+      
+      const telegramUser = JSON.parse(telegramUserJSON);
+      
+      // Verify OTP with the user ID
+      const { success } = await api.verifyOTP(otpString, telegramUser.id);
 
       if (success) {
         dispatch({
@@ -24,27 +55,17 @@ export default function OTPPage() {
           payload: { message: 'OTP Verified', type: 'success' },
         });
         
-        if (setup) {
-          navigate('/account-setup'); // Redirect to account setup
+        // Check if user profile is complete
+        if (isUserProfileComplete(telegramUser)) {
+          // User profile is complete, set user data and redirect to dashboard
+          dispatch({ 
+            type: 'SET_USER', 
+            payload: telegramUser
+          });
+          navigate('/dashboard');
         } else {
-          dispatch({ type: 'SET_USER', payload: {
-            fullName: "John Doe",
-            phone: "0805748374",
-            email: "john.doe@mail.com",
-            dob: "12/12/2012",
-            passcode: "123456",
-            fingerPrint: true,
-            faceId: true,
-            city_of_residence: "Lagos",
-            state_of_residence: "Lagos",
-            country_of_residence: "Nigeria",
-            address1: "Abuja",
-            address2: "Abuja",
-            zip: "123456",
-            selfie_with_document: true,
-            government_issue_id: true,
-          } });
-          navigate('/dashboard'); // Redirect to dashboard
+          // User profile is incomplete, redirect to account setup
+          navigate('/account-setup');
         }
       } else {
         dispatch({
@@ -55,7 +76,7 @@ export default function OTPPage() {
     } catch (error) {
       dispatch({
         type: 'ADD_NOTIFICATION',
-        payload: { message: 'Verification failed', type: 'error' },
+        payload: { message: error.message || 'Verification failed', type: 'error' },
       });
     } finally {
       setLoading(false);
