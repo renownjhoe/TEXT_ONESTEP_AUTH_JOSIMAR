@@ -14,7 +14,6 @@ export default function Dashboard() {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('telegramUser');
-        console.log(storedUser)
         if (!storedUser) {
             navigate('/');
             return;
@@ -27,14 +26,14 @@ export default function Dashboard() {
             console.error("Error parsing user data from localStorage:", error);
             localStorage.removeItem('telegramUser');
             navigate('/');
+            return; // Important: Exit the useEffect if there's an error
         }
 
         const storedKycStatus = localStorage.getItem('kycStatus');
-        if(storedKycStatus){
-          setKycStatus(storedKycStatus)
-        }
-        else{
-          setKycStatus('not started') //set a default.
+        if (storedKycStatus) {
+            setKycStatus(storedKycStatus);
+        } else {
+            setKycStatus('not started'); //set a default.
         }
 
 
@@ -47,13 +46,16 @@ export default function Dashboard() {
                 localStorage.setItem('notifications', JSON.stringify([])); // Reset to empty array
                 setNotifications([]);
             }
+        } else {
+            setNotifications([]);
         }
-        else{
-          setNotifications([])
-        }
-    }, [navigate, setUser]);
+    }, [navigate]);
 
-    console.log(user);
+
+
+    if (!user) {
+        return null; // Or a loading/redirecting message
+    }
 
     return (
         <div className="min-h-screen bg-black p-4">
