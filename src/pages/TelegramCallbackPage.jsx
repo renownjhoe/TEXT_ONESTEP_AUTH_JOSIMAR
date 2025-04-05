@@ -13,7 +13,6 @@ export const TelegramCallbackPage = () => {
     // const params = new URLSearchParams(window.location.search);
     // const authData = {};
     const authData = JSON.parse(localStorage.getItem('telegramUser'));
-    console.log("Retrieved User Data:", authData);
     
     // Generate OTP and send to user's Telegram
     const handleOTPSending = async () => {

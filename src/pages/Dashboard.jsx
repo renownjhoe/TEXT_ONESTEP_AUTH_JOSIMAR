@@ -14,6 +14,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('telegramUser');
+        console.log(storedUser)
         if (!storedUser) {
             navigate('/');
             return;
@@ -51,17 +52,6 @@ export default function Dashboard() {
           setNotifications([])
         }
     }, [navigate]);
-
-    // Redirect if there is no user.
-    useEffect(() => {
-        if (!user) {
-            navigate('/');
-        }
-    }, [navigate, user]);
-
-    if (!user) {
-        return null; // Or a loading/redirecting message
-    }
 
     return (
         <div className="min-h-screen bg-black p-4">
