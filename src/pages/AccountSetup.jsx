@@ -30,7 +30,9 @@ export default function AccountSetup() {
   };
   
   const [formData, setFormData] = useState({
-    fullName: telegramUser.first_name || '',
+    fullName: (telegramUser.last_name && telegramUser.first_name) 
+      ? `${telegramUser.last_name} ${telegramUser.first_name}` 
+      : '',
     dob: '',
     phone: '',
     referral: '',
