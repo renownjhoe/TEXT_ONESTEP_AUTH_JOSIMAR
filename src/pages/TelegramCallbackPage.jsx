@@ -19,6 +19,7 @@ export const TelegramCallbackPage = () => {
     
     // Store auth data
     localStorage.setItem('telegramUser', JSON.stringify(authData));
+    console.log(authData);
     
     // Generate OTP and send to user's Telegram
     const handleOTPSending = async () => {
@@ -27,6 +28,7 @@ export const TelegramCallbackPage = () => {
         
         // Store token for verification later
         localStorage.setItem('auth_token', token);
+        
         
         // Send OTP to user's Telegram account
         await sendOTPToTelegram(authData.id, token);
