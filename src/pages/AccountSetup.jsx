@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   User,
@@ -9,18 +9,40 @@ import {
 } from 'lucide-react';
 
 export default function AccountSetup() {
+  // Get Telegram user data from localStorage
+  const telegramUserJSON = localStorage.getItem('telegramUser');
+  const telegramUser = telegramUserJSON ? JSON.parse(telegramUserJSON) : {};
+  
+  const isUserProfileComplete = (telegramUser) => {
+    const requiredFields = [
+      'fullName', 'phone', 'email', 'dob', 'passcode', 
+      'fingerPrint', 'faceId', 'city_of_residence', 
+      'state_of_residence', 'country_of_residence', 
+      'address1', 'address2', 'zip', 
+      'selfie_with_document', 'government_issue_id'
+    ];
+    
+    return requiredFields.every(field => 
+      Object.prototype.hasOwnProperty.call(telegramUser, field) && 
+      telegramUser[field] !== null && 
+      telegramUser[field] !== undefined
+    );
+  };
+  
   const [formData, setFormData] = useState({
-    fullName: '',
+    fullName: telegramUser.first_name || '',
     dob: '',
     phone: '',
     referral: '',
   });
+
   const [errors, setErrors] = useState({
     fullName: '',
     dob: '',
     phone: '',
   });
-  const { state, dispatch } = useAuth();
+
+  const { dispatch } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
@@ -44,7 +66,22 @@ export default function AccountSetup() {
     setErrors(newErrors);
 
     if (!hasErrors) {
-      dispatch({ type: 'SET_USER', payload: formData });
+      // Merge Telegram user data with form data
+      const updatedTelegramUser = { 
+        ...telegramUser,
+        fullName: formData.fullName,
+        dob: formData.dob,
+        phone: formData.phone,
+        referral: formData.referral
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('telegramUser', JSON.stringify(updatedTelegramUser));
+      
+      // Update auth context
+      dispatch({ type: 'SET_USER', payload: updatedTelegramUser });
+      
+      // Navigate to next step
       navigate('/passcode-setup');
     }
   };
@@ -96,7 +133,6 @@ export default function AccountSetup() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {/* Use the User icon */}
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -123,7 +159,6 @@ export default function AccountSetup() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {/* Use the Calendar icon */}
                   <Calendar className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -147,7 +182,6 @@ export default function AccountSetup() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {/* Use the Phone icon */}
                   <Phone className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -171,7 +205,6 @@ export default function AccountSetup() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {/* Use the Gift icon */}
                   <Gift className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
