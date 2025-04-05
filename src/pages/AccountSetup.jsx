@@ -30,12 +30,10 @@ export default function AccountSetup() {
   };
   
   const [formData, setFormData] = useState({
-    fullName: (telegramUser.last_name && telegramUser.first_name) 
-      ? `${telegramUser.last_name} ${telegramUser.first_name}` 
-      : '',
-    dob: '',
-    phone: '',
-    referral: '',
+    fullName: (telegramUser.last_name && telegramUser.first_name) ? `${telegramUser.last_name} ${telegramUser.first_name}` : '',
+    dob: (telegramUser.dob) ? `${telegramUser.dob}` : '',
+    phone: (telegramUser.phone) ? `${telegramUser.phone}` : '',
+    referral:(telegramUser.referral) ? `${telegramUser.referral}` : '',
   });
 
   const [errors, setErrors] = useState({
