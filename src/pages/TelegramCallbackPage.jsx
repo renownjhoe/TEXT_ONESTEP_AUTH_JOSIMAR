@@ -49,7 +49,7 @@ export const TelegramCallbackPage = () => {
   }
   
   return (
-    <div className="min-h-screen px-20 bg-gray-900 text-white flex items-center justify-center">
+    <div className="min-h-screen text-center px-20 bg-gray-900 text-white flex items-center justify-center">
       <p>Processing login and sending verification code... Please wait.</p>
     </div>
   );
