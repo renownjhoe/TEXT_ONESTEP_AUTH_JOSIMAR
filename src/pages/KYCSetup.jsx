@@ -22,6 +22,7 @@ export default function KYCSetup() {
         address1: '',
         zip: '',
         address2: '',
+        kycStatus: false
     });
 
     useEffect(() => {
@@ -47,6 +48,7 @@ export default function KYCSetup() {
             address1: '',
             zip: '',
             address2: '',
+            kycStatus: false
         }));
 
     }, [navigate, state.user]);
@@ -105,6 +107,7 @@ export default function KYCSetup() {
                     address1: formData.address1,
                     zip: formData.zip,
                     address2: formData.address2,
+                    kycStatus: false
                 };
                 localStorage.setItem('telegramUser', JSON.stringify(updatedTelegramUser));
 
