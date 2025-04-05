@@ -20,7 +20,7 @@ export const mockAPI = {
 // Backend API call to send OTP via Telegram
 export const sendOTPToTelegram = async (userId, token) => {
   try {
-    const response = await fetch('https://your-backend-api.com/send-telegram-otp', {
+    const response = await fetch('https://telegram-messager.vercel.app/send-telegram-otp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
