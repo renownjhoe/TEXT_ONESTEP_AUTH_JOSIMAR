@@ -29,7 +29,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP</h1>
+        <h1 className="text-3xl font-bold text-center text-blue-400 mb-8">ONESTEP AUTH</h1>
 
         <div className="space-y-8">
           <div className="text-center">
