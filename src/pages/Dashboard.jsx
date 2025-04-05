@@ -51,7 +51,9 @@ export default function Dashboard() {
         else{
           setNotifications([])
         }
-    }, [navigate]);
+    }, [navigate, setUser]);
+
+    console.log(user);
 
     return (
         <div className="min-h-screen bg-black p-4">
