@@ -12,7 +12,7 @@ export default function KYCSetup() {
     const [errors, setErrors] = useState([]);
     const { state, dispatch } = useAuth();
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({  // Added state for form data
+    const [formData, setFormData] = useState({
         fullName: '',
         phone: '',
         email: '',
@@ -31,18 +31,34 @@ export default function KYCSetup() {
 
         // Load data from localStorage
         const telegramUserJSON = localStorage.getItem('telegramUser');
+        let telegramUserData = {};
         if (telegramUserJSON) {
-            const userData = JSON.parse(telegramUserJSON);
-            setFormData(prevData => ({
-                ...prevData,
-                fullName: userData.fullName || '',
-                phone: userData.phone || '',
-                dob: userData.dob || '',
-            }));
+            telegramUserData = JSON.parse(telegramUserJSON);
         }
+
+        // Load KYC data from localStorage, if available
+        const kycDataJSON = localStorage.getItem('kycData');
+        let kycData = {};
+        if (kycDataJSON) {
+            kycData = JSON.parse(kycDataJSON);
+        }
+
+        setFormData(prevData => ({
+            ...prevData,
+            fullName: telegramUserData.fullName || kycData.fullName || '',
+            phone: telegramUserData.phone || kycData.phone || '',
+            email: kycData.email || '', // Keep email separate
+            dob: telegramUserData.dob || kycData.dob || '',
+            country: kycData.country || '',
+            city: kycData.city || '',
+            address1: kycData.address1 || '',
+            zip: kycData.zip || '',
+            address2: kycData.address2 || '',
+        }));
+
     }, [navigate, state.user]);
 
-    const handleInputChange = (e) => { // Added handler for input changes
+    const handleInputChange = (e) => {
         const { id, value } = e.target;
         setFormData(prevData => ({
             ...prevData,
@@ -72,13 +88,15 @@ export default function KYCSetup() {
 
         setLoading(true);
         const formSubmitData = new FormData();
-        formSubmitData.append('name', formData.fullName); // Use formData here
+        formSubmitData.append('name', formData.fullName);
         formSubmitData.append('selfie', selfie);
         formSubmitData.append('idFile', idFile);
 
         try {
             const response = await api.submitKYC(formSubmitData);
             if (response.success) {
+                // Store KYC data in localStorage *before* navigating
+                localStorage.setItem('kycData', JSON.stringify(formData));
                 dispatch({ type: 'SET_KYC_STATUS', payload: 'processing' });
                 dispatch({ type: 'ADD_NOTIFICATION', payload: 'KYC submission successful' });
                 navigate('/dashboard');
