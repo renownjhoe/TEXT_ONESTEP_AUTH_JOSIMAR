@@ -10,16 +10,10 @@ export const TelegramCallbackPage = () => {
   
   useEffect(() => {
     // Extract auth data from URL
-    const params = new URLSearchParams(window.location.search);
-    const authData = {};
-    
-    for (const [key, value] of params.entries()) {
-      authData[key] = value;
-    }
-    
-    // Store auth data
-    localStorage.setItem('telegramUser', JSON.stringify(authData));
-    console.log(authData);
+    // const params = new URLSearchParams(window.location.search);
+    // const authData = {};
+    const authData = JSON.parse(localStorage.getItem('telegramUser'));
+    console.log("Retrieved User Data:", authData);
     
     // Generate OTP and send to user's Telegram
     const handleOTPSending = async () => {
