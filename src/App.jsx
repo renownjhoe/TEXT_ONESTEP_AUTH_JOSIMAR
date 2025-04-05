@@ -13,6 +13,8 @@ import AccountSetup from './pages/AccountSetup';
 import './App.css';
 import TelegramAuth from './pages/TelegramAuth';
 import TelegramCallbackPage from './pages/TelegramCallbackPage';
+import PasscodeLogin from './pages/LoginWithPasscode';
+import BiometricsLogin from './pages/LoginWithBiometric';
 
 function App() {
   return (
@@ -21,7 +23,9 @@ function App() {
       <Router>
         <Notification />
         <Routes>
-          <Route path="/" element={<LoginSetup />} />
+          <Route path="/" element={<LoginSetup />} />          
+          <Route path="/passcode-login" element={<PasscodeLogin />} />
+          <Route path="/biometric-login" element={<BiometricsLogin />} />
           <Route path="/signup" element={<RegisterSetup />} />
           <Route path="/telegram-auth" element={<TelegramAuth />} />
           <Route path="/auth/telegram/callback" element={<TelegramCallbackPage />} />

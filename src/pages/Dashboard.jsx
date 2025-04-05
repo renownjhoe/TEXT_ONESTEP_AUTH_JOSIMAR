@@ -8,7 +8,7 @@ export default function Dashboard() {
     const navigate = useNavigate();
 
     const handleSignOut = () => {
-        localStorage.removeItem('telegramUser');
+        // localStorage.removeItem('telegramUser');
         navigate('/');
     };
 

@@ -67,7 +67,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <button
               className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
-              onClick={() => navigate('/passcode-setup')}
+              onClick={() => navigate('/passcode-login')}
             >
               <KeyRound size={20} />
               Use Passcode
@@ -75,7 +75,7 @@ export default function LoginPage() {
 
             <button
               className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-900 hover:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
-              onClick={() => navigate('/biometric-setup')}
+              onClick={() => navigate('/biometric-login')}
             >
               <Fingerprint size={20} />
               Use Biometrics
