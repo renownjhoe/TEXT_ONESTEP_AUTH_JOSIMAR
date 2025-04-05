@@ -60,9 +60,9 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-6">
                     <span className="text-2xl font-bold text-gray-900">ONESTEP</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">{user?.fullName}</span>
+                        <span className="text-sm text-gray-600">{user?.first_name} {user?.last_name}</span>
                         <div className="w-8 h-8 bg-blue-600 rounded-full text-white flex items-center justify-center">
-                            {user.fullName ? user.fullName.substring(0, 2).toUpperCase() : 'JD'}
+                            {user.first_name && user.last_name ? `${user.first_name.substring(0, 1).toUpperCase()}${user.last_name.substring(0, 1).toUpperCase()}` : 'OA'}
                         </div>
                     </div>
                 </div>
