@@ -47,7 +47,7 @@ export default function OTPPage() {
       const telegramUser = JSON.parse(telegramUserJSON);
       
       // Verify OTP with the user ID
-      const { success } = await api.verifyOTP(otpString, telegramUser.id);
+      const { success } = await api.verifyOTP(otpString);
 
       if (success) {
         dispatch({

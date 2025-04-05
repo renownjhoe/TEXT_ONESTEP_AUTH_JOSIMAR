@@ -1,15 +1,17 @@
 export const mockAPI = {
   generateOTP: async (phone) => {
-    return { success: true, otp: '123456' };
-  },
+    const _TOKEN = localStorage.getItem('auth_token');
+    return { success: true, otp: _TOKEN };
+    },
 
-  verifyOTP: async (otp) => {
-    return new Promise(resolve => 
-      setTimeout(() => resolve({ success: otp === '123456' }), 1000)
-    );
-  },
+    verifyOTP: async (otp) => {
+      const _TOKEN = localStorage.getItem('auth_token');
+      return new Promise(resolve => 
+        setTimeout(() => resolve({ success: otp === _TOKEN }), 1000)
+      );
+    },
 
-  submitKYC: async (data) => {
+    submitKYC: async (data) => {
     return new Promise(resolve =>
       setTimeout(() => resolve({ success: true }), 2000)
     );
