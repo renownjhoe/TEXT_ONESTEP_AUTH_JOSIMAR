@@ -36,24 +36,17 @@ export default function KYCSetup() {
             telegramUserData = JSON.parse(telegramUserJSON);
         }
 
-        // Load KYC data from localStorage, if available
-        const kycDataJSON = localStorage.getItem('kycData');
-        let kycData = {};
-        if (kycDataJSON) {
-            kycData = JSON.parse(kycDataJSON);
-        }
-
         setFormData(prevData => ({
             ...prevData,
-            fullName: telegramUserData.fullName || kycData.fullName || '',
-            phone: telegramUserData.phone || kycData.phone || '',
-            email: kycData.email || '', // Keep email separate
-            dob: telegramUserData.dob || kycData.dob || '',
-            country: kycData.country || '',
-            city: kycData.city || '',
-            address1: kycData.address1 || '',
-            zip: kycData.zip || '',
-            address2: kycData.address2 || '',
+            fullName: telegramUserData.fullName || '',
+            phone: telegramUserData.phone || '',
+            dob: telegramUserData.dob || '',
+            email:  '',
+            country: '',
+            city: '',
+            address1: '',
+            zip: '',
+            address2: '',
         }));
 
     }, [navigate, state.user]);
@@ -95,8 +88,26 @@ export default function KYCSetup() {
         try {
             const response = await api.submitKYC(formSubmitData);
             if (response.success) {
-                // Store KYC data in localStorage *before* navigating
-                localStorage.setItem('kycData', JSON.stringify(formData));
+                // Update telegramUser in localStorage
+                const telegramUserJSON = localStorage.getItem('telegramUser');
+                let telegramUserData = {};
+                if (telegramUserJSON) {
+                    telegramUserData = JSON.parse(telegramUserJSON);
+                }
+                const updatedTelegramUser = {
+                    ...telegramUserData,
+                    fullName: formData.fullName,
+                    phone: formData.phone,
+                    dob: formData.dob,
+                    email: formData.email,
+                    country: formData.country,
+                    city: formData.city,
+                    address1: formData.address1,
+                    zip: formData.zip,
+                    address2: formData.address2,
+                };
+                localStorage.setItem('telegramUser', JSON.stringify(updatedTelegramUser));
+
                 dispatch({ type: 'SET_KYC_STATUS', payload: 'processing' });
                 dispatch({ type: 'ADD_NOTIFICATION', payload: 'KYC submission successful' });
                 navigate('/dashboard');
@@ -330,4 +341,3 @@ export default function KYCSetup() {
             </div>
         </div>
     );
-}
