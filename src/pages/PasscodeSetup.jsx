@@ -4,7 +4,7 @@ import { Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 // Helper function to check if passcode is exactly 6 digits
-const isPasscodeValid = (passcode) => {
+const isPasscodeStrong = (passcode) => {
     return /^\d{6}$/.test(passcode);
 };
 
@@ -31,7 +31,9 @@ const SetupPasscode = () => {
 
         if (!passcode) {
             newErrors.push('Passcode is required');
-        } else if (!isPasscodeValid(passcode)) {
+        } else if (passcode.length < 6) {
+            newErrors.push('Passcode must be at least 6 characters long');
+        } else if (!isPasscodeStrong(passcode)) {
             newErrors.push('Passcode must be exactly 6 digits');
         }
 
@@ -87,19 +89,37 @@ const SetupPasscode = () => {
         navigate('/account-setup');
     };
 
-    // Handle numeric input only
-    const handleNumericInput = (value, setter) => {
-        const numericValue = value.replace(/\D/g, ''); // Remove non-digit characters
-        setter(numericValue);
-    };
-
     return (
         <div className="min-h-screen bg-black text-white flex flex-col">
-            {/* Header remains unchanged */}
+            <header className="p-4 flex items-center justify-between border-b border-gray-800">
+                <span className="text-xl font-bold">ONESTEP</span>
+                <button className="text-white">X</button>
+            </header>
 
             <main className="flex-1 flex items-center justify-center p-4">
                 <div className="max-w-md w-full space-y-6">
-                    {/* Title and progress indicators remain unchanged */}
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold mb-2">Setup your Passcode</h2>
+                        <p className="text-gray-400">
+                            You need to setup your OneStep passcode to properly keep your account
+                            completely safe and secured from the prying eyes of hackers.
+                        </p>
+                    </div>
+
+                    <div className="flex justify-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                                1
+                            </div>
+                            <span>Account Setup</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                                2
+                            </div>
+                            <span>Setup Passcode</span>
+                        </div>
+                    </div>
 
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div>
@@ -112,14 +132,12 @@ const SetupPasscode = () => {
                                 </div>
                                 <input
                                     type="password"
-                                    inputMode="numeric"
                                     name="passcode"
                                     id="passcode"
                                     className="focus:ring-blue-500 py-3 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-700 rounded-md bg-gray-800 text-white"
-                                    placeholder="Enter 6-digit Passcode"
+                                    placeholder="Enter Passcode"
                                     value={passcode}
-                                    onChange={(e) => handleNumericInput(e.target.value, setPasscode)}
-                                    maxLength="6"
+                                    onChange={(e) => setPasscode(e.target.value)}
                                 />
                             </div>
                             {errors.length > 0 && (
@@ -130,7 +148,7 @@ const SetupPasscode = () => {
                                 </div>
                             )}
                             <p className="mt-2 text-sm text-gray-500">
-                                Your Passcode must be 6 digits and not related to your Date of Birth
+                                Your Passcode must not be related to your Date of Birth in any way.
                             </p>
                         </div>
                         <div>
@@ -143,21 +161,48 @@ const SetupPasscode = () => {
                                 </div>
                                 <input
                                     type="password"
-                                    inputMode="numeric"
                                     name="confirmPasscode"
                                     id="confirmPasscode"
                                     className="focus:ring-blue-500 py-3 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-700 rounded-md bg-gray-800 text-white"
-                                    placeholder="Confirm 6-digit Passcode"
+                                    placeholder="Confirm Passcode"
                                     value={confirmPasscode}
-                                    onChange={(e) => handleNumericInput(e.target.value, setConfirmPasscode)}
-                                    maxLength="6"
+                                    onChange={(e) => setConfirmPasscode(e.target.value)}
                                 />
                             </div>
                         </div>
-                        {/* Buttons and other elements remain unchanged */}
+                        <div className="flex space-x-4">
+                            <button
+                                type="button"
+                                className="w-1/2 bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg"
+                                onClick={handlePrevious}
+                            >
+                                PREVIOUS
+                            </button>
+                            <button
+                                type="submit"
+                                className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg"
+                            >
+                                PROCEED
+                            </button>
+                        </div>
                     </form>
 
-                    {/* Footer content remains unchanged */}
+                    <div className="text-center text-xs text-gray-400">
+                        NOTE: Provide correct information relation to yourself. Your Phone Number
+                        and other details as they will be used for authentication, authorization, and
+                        verification before payments and other essential support services are made.
+                    </div>
+
+                    <div className="text-center text-xs text-gray-400">
+                        By using Login you agree to our{' '}
+                        <Link to="/terms" className="text-blue-500">
+                            Terms
+                        </Link>{' '}
+                        &amp;{' '}
+                        <Link to="/privacy" className="text-blue-500">
+                            Privacy Policy
+                        </Link>
+                    </div>
                 </div>
             </main>
         </div>
