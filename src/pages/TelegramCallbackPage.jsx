@@ -5,7 +5,7 @@ import { sendOTPToTelegram } from '../services/api';
 
 export const TelegramCallbackPage = () => {
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(true);
+  // const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState(null);
   
   useEffect(() => {
@@ -29,8 +29,9 @@ export const TelegramCallbackPage = () => {
         // Redirect to OTP verification page
         navigate('/otp');
       } catch (error) {
+        console.error('Error sending OTP:', error);
         setError('Failed to send OTP. Please try again.');
-        setIsProcessing(false);
+        // setIsProcessing(false);
       }
     };
     

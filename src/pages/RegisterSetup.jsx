@@ -1,8 +1,33 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Fingerprint, Key, Telegram, QuestionMark } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+import TelegramLoginButton from '../components/TelegramLoginButton';
 
 export default function RegisterPage() {
-  const redirectPath = '/telegram-auth?setup=true';
+  const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
+  const [authError, setAuthError] = useState(null);
+
+  // const redirectPath = '/telegram-auth?setup=true';
+
+  
+    useEffect(() => {
+      // Check if user is already authenticated
+      const isAuthenticated = sessionStorage.getItem('user_authenticated') === 'true';
+      if (isAuthenticated) {
+        navigate('/dashboard');
+      }
+    }, [navigate]);
+  
+    const handleAuthSuccess = (userData) => {
+      console.log("Telegram Auth Successful:", userData);
+      
+      // Store user data for reference
+      localStorage.setItem('telegramUser', JSON.stringify(userData));
+      
+      // Navigate to callback page which will handle OTP generation and sending
+      navigate('/auth/telegram/callback');
+    };
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
@@ -29,12 +54,14 @@ export default function RegisterPage() {
             <p className="text-sm text-gray-500">
               Kindly select a Messenger below
             </p>
-              <Link to={redirectPath} 
+              {/* <Link to={redirectPath} 
                 className="w-full py-4 px-8 border-2 border-gray-800 rounded-xl hover:border-blue-500 transition-colors flex items-center justify-center gap-2"
               >
                 <Telegram className="text-yellow-600 text-sm w-[24px] h-[24px]" />
                 <span className="text-sm text-yellow-600">Telegram</span>
-              </Link>
+              </Link> */}
+              <TelegramLoginButton onAuth={handleAuthSuccess} />
+
             </div>
 
           </div>
