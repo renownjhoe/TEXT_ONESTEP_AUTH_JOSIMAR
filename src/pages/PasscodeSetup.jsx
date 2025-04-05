@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 // Helper function for basic passcode strength check
 const isPasscodeStrong = (passcode) => {
-    return passcode.length >= 8 && /[a-zA-Z]/.test(passcode) && /\d/.test(passcode);
+    return passcode.length >= 6 && /[a-zA-Z]/.test(passcode) && /\d/.test(passcode);
 };
 
 // Helper function to check if passcode is similar to DOB
