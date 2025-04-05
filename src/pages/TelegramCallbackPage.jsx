@@ -5,13 +5,9 @@ import { sendOTPToTelegram } from '../services/api';
 
 export const TelegramCallbackPage = () => {
   const navigate = useNavigate();
-  // const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    // Extract auth data from URL
-    // const params = new URLSearchParams(window.location.search);
-    // const authData = {};
     const authData = JSON.parse(localStorage.getItem('telegramUser'));
     
     // Generate OTP and send to user's Telegram
@@ -53,7 +49,7 @@ export const TelegramCallbackPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+    <div className="min-h-screen px-20 bg-gray-900 text-white flex items-center justify-center">
       <p>Processing login and sending verification code... Please wait.</p>
     </div>
   );
